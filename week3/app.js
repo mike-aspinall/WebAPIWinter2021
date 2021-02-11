@@ -1,9 +1,16 @@
 var express = require('express')
 const { setFlagsFromString } = require('v8')
 var app = express()
+var mongoose = require('mongoose')
 var serv = require('http').Server(app)
 var io = require('socket.io')(serv,{})
 var debug = true
+
+require('./db')
+require('./models/player')
+
+var PlayerData = mongoose.model('Player')
+
 
 //File Communication===================================
 app.get('/', function(req,res){
@@ -15,7 +22,7 @@ app.use('/client', express.static(__dirname+'/client'))
 
 
 
-//server side communiction=========================
+//server side communication=========================
 serv.listen(3000,function(){
     console.log('Connected on localhost 3000')
 })
@@ -203,6 +210,26 @@ Bullet.update = function(){
     return pack
 }
 
+// User Collection setup================================
+
+var Players = {
+    "Matt":"321",
+    "Mike":"123"
+}
+
+var isPasswordValid = function(data){
+    var doc = PlayerData.findOne({username:data.username}, function(err, username){})
+    //return Players[data.username] === data.password
+}
+
+var isUsernameTaken = function(data){
+    return Players[data.username]
+}
+
+var addUser = function(data){
+    //Players[data.username] = data.password
+    new PlayerData(data).save()
+}
 
 //Connection to game
 io.sockets.on('connection', function(socket){
@@ -214,10 +241,30 @@ io.sockets.on('connection', function(socket){
    // socket.number = Math.floor(Math.random()*10)
     //add something to SocketList
     SocketList[socket.id] = socket
-    Player.onConnect(socket)
-    //send the id to the client
-    socket.emit('connected', socket.id)
+
     
+    //signIn event
+    socket.on('signIn',function(data){
+        if(isPasswordValid(data)) {
+            Player.onConnect(socket)
+            //send the id to the client
+            socket.emit('connected', socket.id)
+            socket.emit('signInResponse',{success:true})
+        } else {
+            socket.emit('signInResponse',{success:false})
+        }
+    })
+
+    //signUp event
+    socket.on('signUp',function(data){
+        if(isUsernameTaken(data)){
+            socket.emit('signUpResponse',{success:false})
+        } else {
+            addUser(data)
+            socket.emit('signUpResponse',{success:true})
+        }
+    })
+
     //disconnection event
     socket.on('disconnect',function(){
         delete SocketList[socket.id]
