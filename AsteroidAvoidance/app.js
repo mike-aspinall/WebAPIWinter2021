@@ -3,7 +3,12 @@ var mongoose = require('mongoose')
 var app = express()
 var path = require('path')
 var bodyparser = require('body-parser')
+const { createBrotliCompress } = require('zlib')
+var serv = require('http').Server(app)
+var io = require('socket.io')(serv,{})
 //var router = express.Router()
+
+require('./db')
 
 //sets up our middleware to use in our appplication
 app.use(bodyparser.json())
@@ -49,6 +54,28 @@ app.get('/getData', function(req,res){
 
 app.use(express.static(__dirname+"/views"))
 
-app.listen(5000, function(){
-    console.log("Listening on port 5000")
+//app.listen(5000, function(){
+//    console.log("Listening on port 5000")
+//})
+
+//File Communication===================================
+app.get('/', function(req,res){
+    res.sendFile(__dirname+'/views/index.html')
+})
+
+app.use('/views', express.static(__dirname+'/views'))
+
+//server side communication=========================
+serv.listen(5000,function(){
+    console.log('Connected on localhost 5000')
+})
+
+var SocketList = {}
+
+io.sockets.on('connection', function(socket){
+    console.log("Socket Connected")
+
+    socket.id = Math.random()
+    //add something to SocketList
+    SocketList[socket.id] = socket
 })

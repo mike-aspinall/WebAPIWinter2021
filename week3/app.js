@@ -2,6 +2,7 @@ var express = require('express')
 const { setFlagsFromString } = require('v8')
 var app = express()
 var mongoose = require('mongoose')
+const { createBrotliCompress } = require('zlib')
 var serv = require('http').Server(app)
 var io = require('socket.io')(serv,{})
 var debug = true
@@ -217,13 +218,24 @@ var Players = {
     "Mike":"123"
 }
 
-var isPasswordValid = function(data){
-    var doc = PlayerData.findOne({username:data.username}, function(err, username){})
-    //return Players[data.username] === data.password
+var isPasswordValid = function(data, cb){
+    PlayerData.findOne({username:data.username},function(err,username){
+        if (username == null)
+            cb(false)
+        else
+            cb(data.password == username.password)
+    })
 }
 
-var isUsernameTaken = function(data){
-    return Players[data.username]
+var isUsernameTaken = function(data,cb){
+    PlayerData.findOne({username:data.username}, function(err,username){
+        if (username == null) {
+            cb(false)
+        } else {
+            cb(true)
+        }
+    })
+    //return Players[data.username]
 }
 
 var addUser = function(data){
@@ -245,24 +257,28 @@ io.sockets.on('connection', function(socket){
     
     //signIn event
     socket.on('signIn',function(data){
-        if(isPasswordValid(data)) {
-            Player.onConnect(socket)
-            //send the id to the client
-            socket.emit('connected', socket.id)
-            socket.emit('signInResponse',{success:true})
-        } else {
-            socket.emit('signInResponse',{success:false})
-        }
+        isPasswordValid(data, function(res){
+            if (res) {
+                Player.onConnect(socket)
+                //send the id to the client
+                socket.emit('connected', socket.id)
+                socket.emit('signInResponse',{success:true})
+            } else {
+                socket.emit('signInResponse',{success:false})
+            }
+        })
     })
 
     //signUp event
     socket.on('signUp',function(data){
-        if(isUsernameTaken(data)){
-            socket.emit('signUpResponse',{success:false})
-        } else {
-            addUser(data)
-            socket.emit('signUpResponse',{success:true})
-        }
+        isUsernameTaken(data, function(res){
+            if (res){
+                socket.emit('signUpResponse',{success:false})
+            } else {
+                addUser(data)
+                socket.emit('signUpResponse',{success:true})
+            }
+        })
     })
 
     //disconnection event

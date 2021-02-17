@@ -347,3 +347,8 @@ function scoreTimer(){
         setTimeout(scoreTimer, 1000);
     }
 }
+
+socket.on('connected', function(data){
+    clientId = data
+    console.log(clientId)
+})
