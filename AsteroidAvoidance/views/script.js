@@ -13,6 +13,7 @@ var highScore = 0;
 var bgMain = new Image();
 var cookieSprite = new Image();
 var highScoreElements = document.querySelector('.highscore');
+var socket = io()
 
 bgMain.src = "images/rocks.jpg";
 cookieSprite.src = "images/cookie.png";
