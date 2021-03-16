@@ -26,7 +26,6 @@ socket.on('signInResponse',function(data){
         //alert("Sign in Unsuccessful")
         error.innerHTML = "Sign in Unsuccessful"
     }
-
 })
 
 socket.on('signUpResponse',function(data){

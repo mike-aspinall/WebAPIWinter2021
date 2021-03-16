@@ -298,7 +298,6 @@ var isUsernameTaken = function (data, cb) {
         else {
             cb(true)
         }
-
     })
 }
 

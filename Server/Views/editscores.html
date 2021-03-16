@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editing Scores</title>
+    <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
+    <script>
+        function checkForm() {
+            if (document.getElementById('OriginalName').value == "" || document.getElementById('ChangedName').value == ""){
+                event.preventDefault()
+            }
+        }
+    </script>
+</head>
+<body>
+    <nav>
+        <a href="index.html">Scores</a>
+        <a href="#">Edit Names</a>
+    </nav>
+    <br><br>
+    <div id="signInDiv" style="display:flex;">
+        <span id="err" style="color: red; font-family: Arial, Helvetica, sans-serif; font-size:x-small;"></span><br>
+        Username: <input type="text" name="" id="signInDiv-username"><br>
+        Password: <input type="password" name="" id="signInDiv-password"><br>
+        <Button id="signInDiv-signIn">Sign In</Button>
+    </div>
+    <form class="updateName" style="display: none" id="editNameForm">
+        <input name="original" id="OriginalName" type="text" placeholder="Enter original name"><br>
+        <input name="changed" id="ChangedName" type="text" placeholder="Enter changed name"><br><br>
+        <button id="submitNameChange" href="editscores.html">Submit</button>
+    </form>
+    <script>
+        var socket = io()
+        var nameChangedSubmitBtn = document.getElementById('submitNameChange')
+        var originalName = document.getElementById('OriginalName')
+        var changedName = document.getElementById('ChangedName')
+
+        //Sign in related client code==========================
+var signDiv = document.getElementById('signInDiv')
+var signDivUsername = document.getElementById('signInDiv-username')
+var signDivSignIn = document.getElementById('signInDiv-signIn')
+var signDivPassword = document.getElementById('signInDiv-password')
+var gameDiv = document.getElementById('editNameForm')
+var error = document.getElementById('err')
+
+//add event listeners for sign in buttons
+signDivSignIn.onclick = function(){
+    socket.emit('signIn',{username:signDivUsername.value, password:signDivPassword.value})
+}
+
+socket.on('signInResponse',function(data){
+    if(data.success){
+        //log user in
+        signDiv.style.display = "none"
+        gameDiv.style.display = "inline-block"
+    }else{
+        //alert("Sign in Unsuccessful")
+        error.innerHTML = "Sign in Unsuccessful"
+    }
+})
+
+        nameChangedSubmitBtn.onclick = function() {
+            console.log("got here")
+            socket.emit('/editName', {
+                originalName: originalName.value,
+                changedName: changedName.value
+            })
+        }
+    </script>
+    <!-- <script src="random.js"></script> -->
+</body>
+</html>

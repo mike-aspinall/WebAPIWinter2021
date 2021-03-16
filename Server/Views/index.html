@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scores</title>
+    <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
+</head>
+<body>
+    <nav>
+        <a href="#">Scores</a>
+        <a href="editscores.html">Edit Scores</a>
+    </nav>
+    <div id="container">
+        <script>
+            fetch('/getData').then(function(scores){
+                scores.json().then(function(thescores){
+                    console.log(thescores)
+                    for(let score of thescores.score){
+                        var scoreElement = document.createElement('p')
+                        scoreElement.innerHTML = 'Name: ' + score.playername + " - Score: " + score.score + " - Times Played: " + score.timesplayed
+                        //displays the information from the database into the created paragraph tag
+                        document.getElementById('container').appendChild(scoreElement)
+                    }
+                })
+            })
+        </script>
+    </div>
+</body>
+</html>
